@@ -1,0 +1,122 @@
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="demo.css">
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="cookies.js"></script>
+  <script src="../src/customColumns.js"></script>
+
+  <script>
+    $(document).ready(function() {
+      $.fn.customColumns.defaults.beforeHide = function($elem, callback) {
+        $elem.stop().fadeOut('slow', callback);
+        };
+      $('table').customColumns();
+    });
+  </script>
+</head>
+
+<body>
+  <center>
+    <h1>Geographical Fugue</h1>
+    <h2>- an analysis -</h2>
+    <table id="thisMustBeGloballyUniqueForCookies">
+      <thead>
+        <tr>
+          <th>Location</th>
+          <th>Region</th>
+          <th>Population</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Mississippi (river)</td>
+          <td>Minnesota, Wisconsin, Iowa, Illinois, Missouri, Kentucky, Tennessee, Arkansas, Mississippi, Louisiana</td>
+          <td>Many'o'fish</td>
+        </tr>
+        <tr>
+          <td>Honolulu</td>
+          <td>Hawaii</td>
+          <td>337,256 </td>
+        </tr>
+        <tr>
+          <td>Titicaca</td>
+          <td>Bolivia, Peru</td>
+          <td>893 km3 of water (and many fish)</td>
+        </tr>
+        <tr>
+          <td>Popokatepetl</td>
+          <td>Mexico</td>
+          <td>-</td>
+        </tr>
+        <tr>
+          <td>Canada</td>
+          <td>North America</td>
+          <td>35,151,728</td>
+        </tr>
+        <tr>
+          <td>Mexico</td>
+          <td>North America</td>
+          <td>119,530,753</td>
+        </tr>
+        <tr>
+          <td>Malaga</td>
+          <td>Spain</td>
+          <td>569,130</td>
+        </tr>
+        <tr>
+          <td>Rimini</td>
+          <td>Italy</td>
+          <td>146,606</td>
+        </tr>
+        <tr>
+          <td>Brindisi</td>
+          <td>Italy</td>
+          <td>88,302</td>
+        </tr>
+        <tr>
+          <td>Nagasaki</td>
+          <td>Japan</td>
+          <td>425,723</td>
+        </tr>
+        <tr>
+          <td>Yokohama</td>
+          <td>Japan</td>
+          <td>3,732,616</td>
+        </tr>
+        <tr>
+          <td>Athens</td>
+          <td>Greece</td>
+          <td>3,090,508</td>
+        </tr>
+      </tbody>
+    </table>
+    <br /> And last but not least...
+    <table>
+      <!-- tables without id do not support cookies -->
+      <tr>
+        <th>
+          Location
+        </th>
+        <th>
+          Area
+        </th>
+        <th>
+          Population
+        </th>
+      </tr>
+      <tr>
+        <tr>
+          <td>Trinidad!</td>
+          <td>Trinidad and Tobago</td>
+          <td>1,267,145</td>
+        </tr>
+      </tr>
+    </table>
+    <br />
+    <iframe width="100%" height="400px" src="https://www.youtube.com/embed/cvI9e-iUT8g" frameborder="0" allowfullscreen></iframe>
+  </center>
+</body>
+
+</html>

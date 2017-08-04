@@ -1,0 +1,9 @@
+*.*
+**/
+!/src/
+!/src/**
+!/demo/
+!/demo/**
+!.gitignore
+!LICENCE.md
+!README.md

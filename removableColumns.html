@@ -1,0 +1,306 @@
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <style>
+    table {
+      font-family: "Courier New";
+      border-collapse: collapse;
+      border-spacing: 0px;
+      width: 100%;
+    }
+
+    table,
+    th,
+    td {
+      border: 1px solid #ccc;
+    }
+
+    th {
+      margin: 1em 0.2em;
+      background: #12ab12;
+      color: #eee;
+    }
+
+    tbody tr:nth-child(2n) {
+      background: #eee;
+    }
+
+    tbody tr:nth-child(2n+1) {
+      background: #ddd;
+    }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="cookies.js"></script>
+
+  <script>
+    (function($) {
+      $.fn.customColumns = function(options) {
+
+        var settings = $.extend({}, $.fn.customColumns.defaults, options);
+
+        var selectorHandle = settings.selectorHead.split(",").map(function(x) {
+          return x + ' ' + settings.handleType
+        }).join(", ");
+
+        var selectorHandleHover = settings.selectorHead.split(",").map(function(x) {
+          return x + ' ' + settings.handleType + ':hover'
+        }).join(", ");
+
+        function noVisibleColumns($table) {
+          return $table.find(settings.selectorHead).filter(':visible').length;
+        }
+
+        function noHiddenColumns($table) {
+          return $table.find(settings.selectorHead).filter(':hidden').length;
+        }
+
+        function hideColum($table, i) {
+          return $table.find('td:nth-child(' + (i + 1) + '), th:nth-child(' + (i + 1) + ')').hide();
+        }
+
+        function storeAsHidden($table, i) {
+          if (!$.fn.customColumns.settings.useCookie) {
+            return false;
+          }
+          var tableId = $table.attr('id');
+          if (!tableId) {
+            console.warn("Cookie support for customColumn only works for tables with ids");
+            return false;
+          }
+          if (!Cookies) {
+            console.warn("Cookie is not supported. Either deactivate the usage of cookies via $.fn.customColumns.settings.useCookie or make js-cookies available (https://github.com/js-cookie/js-cookie)");
+            return false;
+          }
+          var cookie = Cookies.getJSON($.fn.customColumns.settings.cookieNamespace) || {};
+          var hiddenColumns = cookie[tableId] || [];
+          hiddenColumns.push(i);
+          cookie[tableId] = hiddenColumns;
+          return Cookies.set($.fn.customColumns.settings.cookieNamespace, cookie);
+        }
+
+        function restore($table) {
+          var result = $table.find('td, th').show();
+          if ($.fn.customColumns.settings.useCookie) {
+            var tableId = $table.attr('id');
+            if (!tableId) {
+              console.warn("Cookie support for customColumn only works for tables with ids");
+              return false;
+            }
+            if (!Cookies) {
+              console.warn("Cookie is not supported. Either deactivate the usage of cookies via $.fn.customColumns.settings.useCookie or make js-cookies available (https://github.com/js-cookie/js-cookie)");
+              return false;
+            }
+            var cookie = Cookies.getJSON($.fn.customColumns.settings.cookieNamespace) || {};
+            delete cookie[tableId];
+            Cookies.set($.fn.customColumns.settings.cookieNamespace, cookie);
+          }
+          return result;
+        }
+
+        function beautifyHandles($table) {
+          $table.find(selectorHandle)
+            .css(settings.handleCss)
+            .hover(
+              function() {
+                $(this).css(settings.handleHoverCss)
+              },
+              function() {
+                $(this).css(settings.handleCss)
+              }
+            );
+        }
+
+        return $.each(this, function() {
+          var $table = $(this);
+
+          $table.find(settings.selectorHead).css({
+            'position': 'relative'
+          });
+
+          $table.find(settings.selectorHead).append(settings.handle);
+
+          $table.on("click", selectorHandle, function() {
+            var noColumns = noVisibleColumns($table);
+            if (noColumns > 1) {
+              var i = $(this).parent().index();
+              var $elem = $table.find('td:nth-child(' + (i + 1) + '), th:nth-child(' + (i + 1) + ')');
+              settings.beforeHide($elem, function() {
+                $elem.hide();
+                if (noColumns == 2) {
+                  $table.find(selectorHandle).replaceWith(settings.restoreHandle);
+                  beautifyHandles($table);
+                }
+              });
+              storeAsHidden($table, i);
+              settings.afterHide($elem);
+            } else {
+              restore($table);
+              $table.find(selectorHandle).replaceWith(settings.handle);
+              beautifyHandles($table);
+            }
+          });
+
+          if ($.fn.customColumns.settings.useCookie) {
+            var tableId = $table.attr('id');
+            if (tableId) {
+              if (Cookies) {
+                var cookie = Cookies.getJSON($.fn.customColumns.settings.cookieNamespace) || {};
+                var hiddenColumns = cookie[tableId] || [];
+                var hiddenColumnsLength = hiddenColumns.length;
+                for (var i = 0; i < hiddenColumnsLength; i++) {
+                  var j = hiddenColumns[i];
+                  hideColum($table, j);
+                }
+                if (noVisibleColumns($table) == 1) {
+                  $table.find(selectorHandle).replaceWith(settings.restoreHandle)
+                }
+              } else {
+                console.warn("Cookie is not supported. Either deactivate the usage of cookies via $.fn.customColumns.settings.useCookie or make js-cookies available (https://github.com/js-cookie/js-cookie)");
+              }
+            }
+          }
+          return beautifyHandles($table);
+        });
+      }
+
+    }(jQuery));
+    $.fn.customColumns.settings = {
+      'cookieNamespace': 'jquery.customColumns',
+      'useCookie': true
+    };
+    $.fn.customColumns.defaults = {
+      selectorHead: 'thead td, th',
+      handle: '<span>x</span>', //keep consistent with handleType,
+      restoreHandle: '<span>restore columns</span>',
+      handleType: 'span', //keep consistent with handle
+      handleCss: {
+        'position': 'absolute',
+        'right': '0.5em',
+        'cursor': 'pointer',
+        'transition': 'all 500ms ease-in-out',
+        'opacity': '0.5'
+      },
+      handleHoverCss: {
+        'opacity': '1'
+      },
+      beforeHide: function($elem) {
+        return true;
+      },
+      afterHide: function($elem) {
+        return true;
+      }
+    };
+
+    $(document).ready(function() {
+      $.fn.customColumns.defaults.beforeHide = function($elem, callback) {
+        $elem.stop().fadeOut('slow', callback);
+      };
+      $('table').customColumns();
+    });
+  </script>
+</head>
+
+<body>
+  <center>
+    <h1>Geographical Fugue</h1>
+    <h2>- an analysis -</h2>
+    <table id="thisMustBeGloballyUniqueForCookies">
+      <thead>
+        <tr>
+          <th>Location</th>
+          <th>Region</th>
+          <th>Population</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Mississippi (river)</td>
+          <td>Minnesota, Wisconsin, Iowa, Illinois, Missouri, Kentucky, Tennessee, Arkansas, Mississippi, Louisiana</td>
+          <td>Many'o'fish</td>
+        </tr>
+        <tr>
+          <td>Honolulu</td>
+          <td>Hawaii</td>
+          <td>337,256 </td>
+        </tr>
+        <tr>
+          <td>Titicaca</td>
+          <td>Bolivia, Peru</td>
+          <td>893 km3 of water (and many fish)</td>
+        </tr>
+        <tr>
+          <td>Popokatepetl</td>
+          <td>Mexico</td>
+          <td>-</td>
+        </tr>
+        <tr>
+          <td>Canada</td>
+          <td>North America</td>
+          <td>35,151,728</td>
+        </tr>
+        <tr>
+          <td>Mexico</td>
+          <td>North America</td>
+          <td>119,530,753</td>
+        </tr>
+        <tr>
+          <td>Malaga</td>
+          <td>Spain</td>
+          <td>569,130</td>
+        </tr>
+        <tr>
+          <td>Rimini</td>
+          <td>Italy</td>
+          <td>146,606</td>
+        </tr>
+        <tr>
+          <td>Brindisi</td>
+          <td>Italy</td>
+          <td>88,302</td>
+        </tr>
+        <tr>
+          <td>Nagasaki</td>
+          <td>Japan</td>
+          <td>425,723</td>
+        </tr>
+        <tr>
+          <td>Yokohama</td>
+          <td>Japan</td>
+          <td>3,732,616</td>
+        </tr>
+        <tr>
+          <td>Athens</td>
+          <td>Greece</td>
+          <td>3,090,508</td>
+        </tr>
+      </tbody>
+    </table>
+    <br /> And last but not least...
+    <table>
+      <!-- tables without id do not support cookies -->
+      <tr>
+        <th>
+          Location
+        </th>
+        <th>
+          Area
+        </th>
+        <th>
+          Population
+        </th>
+      </tr>
+      <tr>
+        <tr>
+          <td>Trinidad!</td>
+          <td>Trinidad and Tobago</td>
+          <td>1,267,145</td>
+        </tr>
+      </tr>
+    </table>
+    <br />
+    <iframe width="100%" height="400px" src="https://www.youtube.com/embed/cvI9e-iUT8g" frameborder="0" allowfullscreen></iframe>
+  </center>
+</body>
+
+</html>
