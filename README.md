@@ -2,6 +2,9 @@
 A lightweight jquery plugin that enablse your users to show/hide columns in a table. To the right of each column header, there is a small "close" button, that hides the respective column. If only one column is left, the button changes so that it restores all columns.
 This plugin optionally supports cookies, so your users will see their tables as they left them, the next time they come by.
 
+## Demo
+You can find a [demo on jsFiddle ](https://jsfiddle.net/29ewvkwv/1) or locally in the demo folder.
+
 ## Usage
 
 Load the script
